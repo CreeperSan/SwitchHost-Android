@@ -10,7 +10,7 @@ class HostFileOperationDialog(context: Context) {
         const val OPEN = 0
         const val DELETE = 1
         const val DETAIL = 2
-        const val REPLACE = 3
+        const val USE = 3
         const val STAR = 4
 
     }

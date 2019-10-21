@@ -3,7 +3,7 @@ package com.creepersan.switchhost.manager
 import android.os.Environment
 import com.creepersan.switchhost.bean.HostFile
 import java.io.File
-import java.util.ArrayList
+import java.util.*
 
 object FileManager {
     private val NAME_DIRECTORY_ROOT = "SwitchHost"
@@ -55,6 +55,7 @@ object FileManager {
                 list.add(hostFile)
             }
         }
+        list.sortBy { hostFile -> hostFile.name.toLowerCase(Locale.getDefault()) }
         return list
     }
 
@@ -66,7 +67,16 @@ object FileManager {
                 list.add(hostFile)
             }
         }
+        list.sortBy { hostFile -> hostFile.name.toLowerCase(Locale.getDefault()) }
         return list
+    }
+
+    fun deleteHostFile(hostFile:HostFile):Boolean{
+        val file = File(hostFile.path)
+        if (!file.exists()) {
+            return true
+        }
+        return file.delete()
     }
 
     fun hasBackupHostFile():Boolean{

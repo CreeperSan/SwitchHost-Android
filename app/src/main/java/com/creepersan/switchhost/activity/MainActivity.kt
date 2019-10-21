@@ -1,24 +1,38 @@
 package com.creepersan.switchhost.activity
 
+import android.app.Activity
+import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
-import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
 import androidx.core.view.GravityCompat
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.creepersan.switchhost.R
 import com.creepersan.switchhost.application.SwitchHostApplication
 import com.creepersan.switchhost.bean.HostFile
+import com.creepersan.switchhost.bean.MainStartDrawerItem
 import com.creepersan.switchhost.extension.gone
 import com.creepersan.switchhost.extension.visible
+import com.creepersan.switchhost.manager.ConfigManager
 import com.creepersan.switchhost.manager.FileManager
 import com.creepersan.switchhost.manager.RootManager
 import com.creepersan.switchhost.widget.adapter.MainHostFileAdapter
+import com.creepersan.switchhost.widget.adapter.MainStartDrawerAdapter
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
+import java.io.File
+import java.lang.Exception
 
 class MainActivity : BaseActivity(), MainHostFileAdapter.OnHostFileClickListener {
+    companion object{
+        private const val REQUEST_CODE_IMPORT_HOST_FILE = 0
+
+        private const val ID_DRAWER_EXIT = 0
+    }
 
     private val mAdapter = MainHostFileAdapter(this)
+    private val mDrawerAdapter = MainStartDrawerAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,14 +40,25 @@ class MainActivity : BaseActivity(), MainHostFileAdapter.OnHostFileClickListener
         initActionBar()
         initDrawerLayout()
         if (initHint()){
-            initData()
             initRecyclerView()
+            initData()
             initFloatingActionButton()
+        }else{
+            supportActionBar?.hide()
         }
     }
 
     private fun initDrawerLayout(){
-
+        mDrawerAdapter.addItems(MainStartDrawerItem(ID_DRAWER_EXIT, R.drawable.ic_exit, "退出"))
+        mDrawerAdapter.setItemClickListener(object : MainStartDrawerAdapter.OnItemClickListener{
+            override fun onItemClick(pos: Int, item: MainStartDrawerItem) {
+                when(item.id){
+                    ID_DRAWER_EXIT -> SwitchHostApplication.getInstance().exit()
+                }
+            }
+        })
+        mainDrawerRecyclerView.layoutManager = LinearLayoutManager(this)
+        mainDrawerRecyclerView.adapter = mDrawerAdapter
     }
 
     private fun initActionBar(){
@@ -70,6 +95,7 @@ class MainActivity : BaseActivity(), MainHostFileAdapter.OnHostFileClickListener
         mAdapter.addBackupHostFile(FileManager.getAllBackupHostFile())
         mAdapter.addHostFile(FileManager.getAllHostFile())
         mAdapter.refreshData()
+        mAdapter.notifyDataSetChanged()
     }
 
     private fun initRecyclerView(){
@@ -80,17 +106,42 @@ class MainActivity : BaseActivity(), MainHostFileAdapter.OnHostFileClickListener
 
     private fun initFloatingActionButton(){
         mainHintAddButton.setOnClickListener {
-            Snackbar.make(mainCoordinatorLayout, "?", Snackbar.LENGTH_SHORT).show()
+            toActivity(SelectHostFileActivity::class.java, requestCode = REQUEST_CODE_IMPORT_HOST_FILE )
         }
     }
 
-
-
-
-
-
     override fun onHostFileClick(hostFile: HostFile) {
-        RootManager.replaceHostFile(hostFile)
+        AlertDialog.Builder(this)
+            .setTitle("切换Host")
+            .setMessage("确认切换当前Host为 ${hostFile.name} 吗？${if (mAdapter.getBackupHostFileCount() <= 0){"你还没有备份当前Host文件！"}else{""}}")
+            .setPositiveButton("确定"){ _, _ ->
+                if (RootManager.replaceHostFile(hostFile)){
+                    ConfigManager.setCurrentHostName(hostFile.name)
+                    showSnack(mainCoordinatorLayout, "Host已切换至 ${hostFile.name}")
+                    initData()
+                }else{
+                    showSnack(mainCoordinatorLayout, "Host切换失败")
+                }
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    override fun onHostFileLongClick(hostFile: HostFile): Boolean {
+        AlertDialog.Builder(this)
+            .setTitle("删除Host")
+            .setMessage("确认删除Host文件 ${hostFile.name} 吗？")
+            .setPositiveButton("确定"){ _, _ ->
+                if (FileManager.deleteHostFile(hostFile)){
+                    showSnack(mainCoordinatorLayout, "已删除 ${hostFile.name}")
+                }else{
+                    showSnack(mainCoordinatorLayout, "删除 ${hostFile.name} 失败，请稍后重试")
+                }
+                initData()
+            }
+            .setNegativeButton("取消", null)
+            .show()
+        return true
     }
 
 
@@ -102,7 +153,12 @@ class MainActivity : BaseActivity(), MainHostFileAdapter.OnHostFileClickListener
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
             R.id.menuMainBackup -> {
-                RootManager.backupSystemHostFile()
+                if (RootManager.backupSystemHostFile()){
+                    showSnack(mainCoordinatorLayout, "当前Host备份成功")
+                    initData()
+                }else{
+                    showSnack(mainCoordinatorLayout, "备份当前Host失败，请检查相关权限")
+                }
             }
             android.R.id.home -> {
                 toggleDrawer()
@@ -111,7 +167,29 @@ class MainActivity : BaseActivity(), MainHostFileAdapter.OnHostFileClickListener
         return true
     }
 
-
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when(requestCode){
+            REQUEST_CODE_IMPORT_HOST_FILE -> {
+                if (resultCode == Activity.RESULT_OK && data != null && data.hasExtra(SelectHostFileActivity.INTENT_KEY_SELECT_HOST_FILE_PATH)){
+                    var count = 0
+                    val pathSet = data.getStringArrayExtra(SelectHostFileActivity.INTENT_KEY_SELECT_HOST_FILE_PATH)
+                    pathSet?.forEach {
+                        val file = File(it)
+                        val targetFile = File("${FileManager.getHostDirectory().path}/${file.name}")
+                        if (file.exists() && file.isFile && !targetFile.exists()){
+                            try {
+                                file.copyTo(targetFile)
+                                count += 1
+                            }catch (e:Exception){}
+                        }
+                    }
+                    initData()
+                    showSnack(mainCoordinatorLayout, "已导入${count}个Host文件")
+                }
+            }
+        }
+    }
 
 
 

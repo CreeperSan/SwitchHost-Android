@@ -19,5 +19,9 @@ class HostFileViewHolder(parent:ViewGroup) : BaseViewHolder(R.layout.item_host_f
         itemView.setOnClickListener(listener)
     }
 
+    fun setOnLongClickListener(listener: View.OnLongClickListener){
+        itemView.setOnLongClickListener(listener)
+    }
+
 
 }

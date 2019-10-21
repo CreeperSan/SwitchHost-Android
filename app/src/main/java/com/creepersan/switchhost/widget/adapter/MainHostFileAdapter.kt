@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.creepersan.switchhost.bean.HostFile
 import com.creepersan.switchhost.bean.HostFileCategory
 import com.creepersan.switchhost.bean.HostFileUsing
+import com.creepersan.switchhost.manager.ConfigManager
 import com.creepersan.switchhost.widget.holder.BaseViewHolder
 import com.creepersan.switchhost.widget.holder.HostFileCategoryViewHolder
 import com.creepersan.switchhost.widget.holder.HostFileUsingViewHolder
@@ -24,7 +25,6 @@ class MainHostFileAdapter(context:Context) : RecyclerView.Adapter<BaseViewHolder
         private const val VIEW_TYPE_USING = 2
     }
 
-    private var mCurrentHostFile : HostFile? = null
     private var mItemList = ArrayList<Any>()
     private var mBackupHostFileList = ArrayList<HostFile>()
     private var mHostFileList = ArrayList<HostFile>()
@@ -70,13 +70,16 @@ class MainHostFileAdapter(context:Context) : RecyclerView.Adapter<BaseViewHolder
             }
             item is HostFileUsing -> {
                 val holder = holderTmp as HostFileUsingViewHolder
-                holder.setName(item.hostFile?.name ?: "未知Host文件")
+                holder.setName(item.name)
             }
             item is HostFile -> {
                 val holder = holderTmp as HostFileViewHolder
                 holder.setName(item.name)
                 holder.setOnClickListener(View.OnClickListener {
                     mOnClickListener?.onHostFileClick(item)
+                })
+                holder.setOnLongClickListener(View.OnLongClickListener {
+                    return@OnLongClickListener mOnClickListener?.onHostFileLongClick(item) ?: false
                 })
             }
             else ->{
@@ -91,6 +94,14 @@ class MainHostFileAdapter(context:Context) : RecyclerView.Adapter<BaseViewHolder
 
     fun getLayoutManager():GridLayoutManager{
         return mGridLayoutManager
+    }
+
+    fun getBackupHostFileCount():Int{
+        return mBackupHostFileList.size
+    }
+
+    fun getHostFileCount():Int{
+        return mHostFileList.size
     }
 
     fun addBackupHostFile(file:Collection<HostFile>){
@@ -113,7 +124,7 @@ class MainHostFileAdapter(context:Context) : RecyclerView.Adapter<BaseViewHolder
         mItemList.clear()
 
         mItemList.add(HostFileCategory("正在使用"))
-        mItemList.add(HostFileUsing(mCurrentHostFile))
+        mItemList.add(HostFileUsing(ConfigManager.getCurrentHostName()))
         mItemList.add(HostFileCategory("Host"))
         mItemList.addAll(mHostFileList)
         mItemList.add(HostFileCategory("备份"))
@@ -122,6 +133,7 @@ class MainHostFileAdapter(context:Context) : RecyclerView.Adapter<BaseViewHolder
 
     interface OnHostFileClickListener{
         fun onHostFileClick(hostFile:HostFile)
+        fun onHostFileLongClick(hostFile:HostFile):Boolean
     }
 
     class TypeNotFoundException : Exception("找不到对应的类型")

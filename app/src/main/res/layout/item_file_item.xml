@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="?attr/selectableItemBackground"
+    android:orientation="horizontal"
+    android:padding="12dp">
+
+    <ImageView
+        android:id="@+id/itemFileItemIcon"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        tools:src="@drawable/ic_folder" />
+
+    <TextView
+        android:id="@+id/itemFileItemName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:lines="1"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:textColor="#000000"
+        tools:text="文件1923" />
+
+</LinearLayout>

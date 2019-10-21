@@ -7,6 +7,7 @@ import java.io.File
 import java.lang.Exception
 
 object RootManager {
+    const val RESULT_CODE_SUCCESS = 0
 
     fun hasRootPermission():Boolean{
         return exec("exit")
@@ -25,25 +26,25 @@ object RootManager {
             outStream.close()
             val code = process.waitFor()
             Log.e("TAG", "root waitFor($code)")
+            return code == RESULT_CODE_SUCCESS
         }catch (e:Exception){
             e.printStackTrace()
             return false
         }
-        return true
     }
 
-    fun execs(cmds:Array<String>){
+    fun execs(cmds:Array<String>):Boolean{
         val commandBuilder = StringBuilder()
         cmds.forEach { cmd ->
             commandBuilder.append(cmd).append(";")
         }
-        exec(commandBuilder.toString())
+        return exec(commandBuilder.toString())
     }
 
-    fun replaceHostFile(hostFile:HostFile){
+    fun replaceHostFile(hostFile:HostFile):Boolean{
         val srcHostFilePath = hostFile.path
         val targetHostFilePath = FileManager.getSystemHostFile().path
-        execs(arrayOf(
+        return execs(arrayOf(
             "mount -o remount,rw /dev/block/mmcblk0p63 /system",
             "cp $srcHostFilePath $targetHostFilePath",
             "chmod 644 $targetHostFilePath",
@@ -51,10 +52,10 @@ object RootManager {
         ))
     }
 
-    fun backupSystemHostFile(){
+    fun backupSystemHostFile():Boolean{
         val srcHostFilePath = FileManager.getSystemHostFile().path
         val targetHostFilePath = File("${FileManager.getBackupDirectory().path}/hosts_${FormatManager.formatBackupFileTimes(System.currentTimeMillis())}")
-        execs(arrayOf(
+        return execs(arrayOf(
             "cp $srcHostFilePath $targetHostFilePath"
         ))
     }

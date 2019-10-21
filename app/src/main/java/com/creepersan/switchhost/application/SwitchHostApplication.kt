@@ -4,6 +4,7 @@ import android.app.Application
 import com.creepersan.switchhost.manager.FileManager
 import com.creepersan.switchhost.manager.PermissionManager
 import com.creepersan.switchhost.manager.RootManager
+import kotlin.system.exitProcess
 
 class SwitchHostApplication : Application() {
     companion object{
@@ -51,6 +52,10 @@ class SwitchHostApplication : Application() {
         }else{
             mInitStateFlag and (initFlag.inv())
         }
+    }
+
+    fun exit(){
+        exitProcess(0)
     }
 
 
