@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.View
 import com.creepersan.switchhost.R
 
@@ -18,6 +19,11 @@ class PageIndicatorView : View{
             val typedArray = context.obtainStyledAttributes(attr, R.styleable.PageIndicatorView)
             mCount = typedArray.getInteger(R.styleable.PageIndicatorView_count, mCount)
             mPosition = typedArray.getFloat(R.styleable.PageIndicatorView_position, mPosition)
+            mDotColor = typedArray.getColor(R.styleable.PageIndicatorView_dotColor, mDotColor)
+            mDotRadius = typedArray.getDimensionPixelSize(R.styleable.PageIndicatorView_dotRadius, mDotRadius.toInt()).toFloat()
+            mActiveDotColor = typedArray.getColor(R.styleable.PageIndicatorView_dotActiveColor, mActiveDotColor)
+            mActiveDotRadius = typedArray.getDimensionPixelSize(R.styleable.PageIndicatorView_dotActiveRadius, mActiveDotRadius.toInt()).toFloat()
+            mDotDistance = typedArray.getDimensionPixelSize(R.styleable.PageIndicatorView_dotDistance, mDotDistance.toInt()).toFloat()
             typedArray.recycle()
         }
         formatValue()
@@ -25,13 +31,13 @@ class PageIndicatorView : View{
 
     private val mPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
-    private var mCount = 6
-    private var mPosition = 3f
-    private var mDotColor = Color.RED
-    private var mDotSize = 16f
-    private var mActiveDotColor = Color.BLUE
-    private var mActiveDotSize = 26f
-    private var mDotDistance = 48f
+    private var mCount = 1
+    private var mPosition = 1f
+    private var mDotColor = Color.parseColor("#99FFFFFF")
+    private var mDotRadius = dp2px(4f)
+    private var mActiveDotColor = Color.WHITE
+    private var mActiveDotRadius = dp2px(6f)
+    private var mDotDistance = dp2px(16f)
 
     fun setCount(count:Int){
         if (count >=  1){
@@ -39,6 +45,7 @@ class PageIndicatorView : View{
         }else{
             mCount = 1
         }
+        requestLayout()
     }
 
     fun setProgress(progress:Float){
@@ -47,6 +54,11 @@ class PageIndicatorView : View{
             progress < 1        -> 1f
             else                -> progress
         }
+        invalidate()
+    }
+
+    private fun dp2px(dp:Float):Float{
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, resources.displayMetrics)
     }
 
     private fun formatValue(){
@@ -60,6 +72,23 @@ class PageIndicatorView : View{
         }
     }
 
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        val dotSizeLarge = Math.max(mDotRadius, mActiveDotRadius) * 2
+        setMeasuredDimension(
+            measureSide(widthMeasureSpec, paddingStart + paddingEnd + mDotDistance * mCount + dotSizeLarge),
+            measureSide(heightMeasureSpec, paddingTop + paddingBottom +dotSizeLarge)
+        )
+    }
+
+    private fun measureSide(spec:Int, defaultSize:Float):Int{
+        val mode = MeasureSpec.getMode(spec)
+        val size = MeasureSpec.getSize(spec)
+        return when(mode){
+            MeasureSpec.EXACTLY -> size
+            else -> defaultSize.toInt()
+        }
+    }
 
     override fun draw(canvas: Canvas?) {
         super.draw(canvas)
@@ -67,8 +96,8 @@ class PageIndicatorView : View{
         if (mCount < 1){
             return
         }
-        val rectPadding = RectF(paddingLeft.toFloat(), paddingTop.toFloat(), (width - paddingRight).toFloat(), (bottom - paddingBottom).toFloat())
-        val largeDotSize = mDotSize.coerceAtLeast(mActiveDotSize)
+        val rectPadding = RectF(paddingLeft.toFloat(), paddingTop.toFloat(), (width - paddingRight).toFloat(), (height - paddingBottom).toFloat())
+        val largeDotSize = mDotRadius.coerceAtLeast(mActiveDotRadius)
         val rectDraw = RectF(
             rectPadding.centerX() - (((mCount.toFloat() - 1) / 2f) * mDotDistance) - largeDotSize,// L
             rectPadding.centerY() - largeDotSize,// T
@@ -81,7 +110,7 @@ class PageIndicatorView : View{
             canvas.drawCircle(
                 rectDraw.left + largeDotSize + i * mDotDistance,
                 rectDraw.centerY(),
-                mDotSize,
+                mDotRadius,
                 mPaint
             )
         }
@@ -90,7 +119,7 @@ class PageIndicatorView : View{
         canvas.drawCircle(
             rectDraw.left + largeDotSize + (mPosition - 1) * mDotDistance,
             rectDraw.centerY(),
-            mActiveDotSize,
+            mActiveDotRadius,
             mPaint
         )
     }

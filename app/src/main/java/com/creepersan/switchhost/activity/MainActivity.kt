@@ -29,6 +29,7 @@ class MainActivity : BaseActivity(), MainHostFileAdapter.OnHostFileClickListener
         private const val REQUEST_CODE_IMPORT_HOST_FILE = 0
 
         private const val ID_DRAWER_EXIT = 0
+        private const val ID_DRAWER_WELCOME = 1
     }
 
     private val mAdapter = MainHostFileAdapter(this)
@@ -49,11 +50,13 @@ class MainActivity : BaseActivity(), MainHostFileAdapter.OnHostFileClickListener
     }
 
     private fun initDrawerLayout(){
+        mDrawerAdapter.addItems(MainStartDrawerItem(ID_DRAWER_WELCOME, R.drawable.ic_book, "版本说明"))
         mDrawerAdapter.addItems(MainStartDrawerItem(ID_DRAWER_EXIT, R.drawable.ic_exit, "退出"))
         mDrawerAdapter.setItemClickListener(object : MainStartDrawerAdapter.OnItemClickListener{
             override fun onItemClick(pos: Int, item: MainStartDrawerItem) {
                 when(item.id){
                     ID_DRAWER_EXIT -> SwitchHostApplication.getInstance().exit()
+                    ID_DRAWER_WELCOME -> toActivity(WelcomeActivity::class.java)
                 }
             }
         })
