@@ -24,7 +24,7 @@
         </activity>
         <activity android:name=".activity.MainActivity" android:screenOrientation="portrait"/>
         <activity android:name=".activity.SelectHostFileActivity" android:screenOrientation="portrait"/>
-        <activity android:name=".activity.WelcomeActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".activity.WelcomeActivity" android:screenOrientation="portrait" android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
 
     </application>
 
