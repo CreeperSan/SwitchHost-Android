@@ -34,6 +34,8 @@ class HostFile private constructor(var path:String,var type:Int){
         size = hostFile.length()
     }
 
-
+    override operator fun equals(other:Any?):Boolean{
+        return other is HostFile? && path == other?.path
+    }
 
 }

@@ -10,6 +10,7 @@ import com.creepersan.switchhost.bean.HostFile
 import com.creepersan.switchhost.bean.HostFileCategory
 import com.creepersan.switchhost.bean.HostFileUsing
 import com.creepersan.switchhost.manager.ConfigManager
+import com.creepersan.switchhost.manager.PrefManager
 import com.creepersan.switchhost.widget.holder.BaseViewHolder
 import com.creepersan.switchhost.widget.holder.HostFileCategoryViewHolder
 import com.creepersan.switchhost.widget.holder.HostFileUsingViewHolder
@@ -23,11 +24,13 @@ class MainHostFileAdapter(context:Context) : RecyclerView.Adapter<BaseViewHolder
         private const val VIEW_TYPE_CATEGORY = 0
         private const val VIEW_TYPE_FILE = 1
         private const val VIEW_TYPE_USING = 2
+        private const val VIEW_TYPE_COLLECTION = 3
     }
 
     private var mItemList = ArrayList<Any>()
     private var mBackupHostFileList = ArrayList<HostFile>()
     private var mHostFileList = ArrayList<HostFile>()
+    private var mCollectionFileList = ArrayList<HostFile>()
     private var mOnClickListener : OnHostFileClickListener? = null
     private var mGridLayoutManager = MainHostListLayoutManager(context){ pos, widthCount ->
         when (mItemList[pos]) {
@@ -121,14 +124,29 @@ class MainHostFileAdapter(context:Context) : RecyclerView.Adapter<BaseViewHolder
     }
 
     fun refreshData(){
+        mCollectionFileList.clear()
+        mCollectionFileList.addAll(PrefManager.getCollectionFileList())
+
         mItemList.clear()
 
         mItemList.add(HostFileCategory("正在使用"))
         mItemList.add(HostFileUsing(ConfigManager.getCurrentHostName()))
+        mItemList.add(HostFileCategory("收藏"))
+        mItemList.addAll(mCollectionFileList)
         mItemList.add(HostFileCategory("Host"))
         mItemList.addAll(mHostFileList)
         mItemList.add(HostFileCategory("备份"))
         mItemList.addAll(mBackupHostFileList)
+
+        notifyDataSetChanged()
+    }
+
+    fun getCollectionHostFileList():ArrayList<HostFile>{
+        return mCollectionFileList
+    }
+
+    fun isCollection(hostFile: HostFile):Boolean{
+        return mCollectionFileList.contains(hostFile)
     }
 
     interface OnHostFileClickListener{

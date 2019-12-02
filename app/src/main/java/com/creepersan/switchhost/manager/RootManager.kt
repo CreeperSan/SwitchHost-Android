@@ -45,10 +45,10 @@ object RootManager {
         val srcHostFilePath = hostFile.path
         val targetHostFilePath = FileManager.getSystemHostFile().path
         return execs(arrayOf(
-            "mount -o remount,rw /dev/block/mmcblk0p63 /system",
+            "mount -o remount,rw /dev/root /",
             "cp $srcHostFilePath $targetHostFilePath",
             "chmod 644 $targetHostFilePath",
-            "mount -o remount,ro /dev/block/mmcblk0p63 /system"
+            "mount -o remount,ro /dev/root /"
         ))
     }
 

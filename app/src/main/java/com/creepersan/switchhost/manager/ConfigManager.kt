@@ -15,7 +15,7 @@ object ConfigManager{
     }
 
     fun setCurrentHostName(hostName:String){
-        mGlobalPref.edit().putString(KEY_GLOBAL_HOST_NAME, hostName).commit()
+        mGlobalPref.edit().putString(KEY_GLOBAL_HOST_NAME, hostName).apply()
     }
 
 }

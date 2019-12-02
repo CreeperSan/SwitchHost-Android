@@ -16,6 +16,7 @@ import com.creepersan.switchhost.extension.gone
 import com.creepersan.switchhost.extension.visible
 import com.creepersan.switchhost.manager.ConfigManager
 import com.creepersan.switchhost.manager.FileManager
+import com.creepersan.switchhost.manager.PrefManager
 import com.creepersan.switchhost.manager.RootManager
 import com.creepersan.switchhost.widget.adapter.MainHostFileAdapter
 import com.creepersan.switchhost.widget.adapter.MainStartDrawerAdapter
@@ -131,6 +132,20 @@ class MainActivity : BaseActivity(), MainHostFileAdapter.OnHostFileClickListener
     }
 
     override fun onHostFileLongClick(hostFile: HostFile): Boolean {
+        val isCollection = mAdapter.isCollection(hostFile)
+        AlertDialog.Builder(this)
+            .setTitle(hostFile.name)
+            .setItems(arrayOf(if (isCollection) "取消收藏" else "收藏", "删除")) { _, index ->
+                when(index){
+                    0 -> onCollectHostFileClick(hostFile, isCollection)
+                    1 -> onDeleteHostFileClick(hostFile)
+                }
+            }
+            .show()
+        return true
+    }
+
+    private fun onDeleteHostFileClick(hostFile: HostFile){
         AlertDialog.Builder(this)
             .setTitle("删除Host")
             .setMessage("确认删除Host文件 ${hostFile.name} 吗？")
@@ -144,7 +159,32 @@ class MainActivity : BaseActivity(), MainHostFileAdapter.OnHostFileClickListener
             }
             .setNegativeButton("取消", null)
             .show()
-        return true
+    }
+
+    private fun onCollectHostFileClick(hostFile: HostFile, isRemoveCollection:Boolean){
+        val collectionHostFileList = mAdapter.getCollectionHostFileList()
+        if (isRemoveCollection){
+            // 取消收藏
+            var hasChange = false
+            val iterator = collectionHostFileList.iterator()
+            while (iterator.hasNext()){
+                val tmpHostFile = iterator.next()
+                if (tmpHostFile == hostFile){
+                    hasChange = true
+                    iterator.remove()
+                }
+            }
+            if (hasChange){
+                PrefManager.setCollectionFileList(collectionHostFileList)
+            }
+        }else{
+            // 添加收藏
+            if(!collectionHostFileList.contains(hostFile)){
+                collectionHostFileList.add(hostFile)
+                PrefManager.setCollectionFileList(collectionHostFileList)
+            }
+        }
+        mAdapter.refreshData()
     }
 
 
