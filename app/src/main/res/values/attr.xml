@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="PageIndicatorView">
+        <attr name="count" format="integer"/>
+        <attr name="position" format="float"/>
+        <attr name="dotColor" format="color|reference"/>
+        <attr name="dotRadius" format="dimension|reference"/>
+        <attr name="dotActiveColor" format="color|reference"/>
+        <attr name="dotActiveRadius" format="dimension|reference"/>
+        <attr name="dotDistance" format="dimension|reference"/>
+    </declare-styleable>
+
+</resources>
